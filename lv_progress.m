@@ -1,5 +1,5 @@
 function lv_progress(iterator, progress_end, msg) % normalised_progress is between 0 and 1 
-% EXAMPLE:
+% EXAMPLE:  
 % progress_end=100;
 % for i=1:progress_end
 %    lv_progress(i, progress_end, 'working on something: ')

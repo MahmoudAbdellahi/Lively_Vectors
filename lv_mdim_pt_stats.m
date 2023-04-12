@@ -2,7 +2,7 @@ function [stat,p] = lv_mdim_pt_stats(x, parametric)
 % calculating the sample wise stats, takes midim difference of the conditions and returns the zvalue and
 % pvalue of the wilcoxon test or tstat and pvalue of a ttest according to parametric flag.. difference maybe in mdim and the z/p
 % values will be in mdim .. first dim is ppnts/samples so it will be
-% compressed when the stats are done
+% compressed when the stats are done..
  
 if parametric~=1 
     dims = size(x);

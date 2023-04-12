@@ -9,7 +9,7 @@ function ids = lv_SO_Spindle_classification(features_test, ids, spindle)
 % model is trained to predict correct and incorrect classification and then
 % it is tested on unseen samples..
 
-trained = 0;
+trained = 1;
 
 if trained ==0
     %% prediction using slow oscillations
@@ -23,6 +23,8 @@ if trained ==0
     end
 
     sbj = [4 6 8 14 20 10 24 26	30 32 16 22]; % codes of participants
+    rm = [1 3 9 10 12]; sbj(rm)=[]; % limiting to ppnts with higher than 0.52 classification ..
+    Header_correct_exp(rm)=[]; Header_incorrect_exp(rm)=[];  
     labels=[];
     SO_features_correct = lv_SO_Spindle_FeatureExtraction(Header_correct_exp, spindle);
     SO_features_incorrect = lv_SO_Spindle_FeatureExtraction(Header_incorrect_exp, spindle);
@@ -76,14 +78,14 @@ if trained ==0
         SO_prediction_mdl = fitcensemble(TRAIN,GROUP_TRAIN,'Method','Bag','NumLearningCycles',200,'Learners',t); % building the model
         save SO_prediction_mdl SO_prediction_mdl;
     else
-        Spindle_prediction_mdl_new = fitcensemble(TRAIN,GROUP_TRAIN,'Method','Bag','NumLearningCycles',200,'Learners',t); % building the model
-        save Spindle_prediction_mdl_new Spindle_prediction_mdl_new;
+        Spindle_prediction_mdl_higherppnts = fitcensemble(TRAIN,GROUP_TRAIN,'Method','Bag','NumLearningCycles',200,'Learners',t); % building the model
+        save Spindle_prediction_mdl_higherppnts Spindle_prediction_mdl_higherppnts;
     end
 else
     if spindle==0
         load SO_prediction_mdl SO_prediction_mdl; mdl = SO_prediction_mdl;
     else
-        load Spindle_prediction_mdl Spindle_prediction_mdl; mdl = Spindle_prediction_mdl;
+        load Spindle_prediction_mdl_higherppnts Spindle_prediction_mdl_higherppnts; mdl = Spindle_prediction_mdl_higherppnts;
     end
 
 

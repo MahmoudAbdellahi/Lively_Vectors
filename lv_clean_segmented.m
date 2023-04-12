@@ -1,4 +1,4 @@
-function [ final_data_interp ] = lv_clean_segmented(segmented_data, method, stats_window, sbj)
+function final_data_interp = lv_clean_segmented(segmented_data, stats_window, sbj)
 % takes fieldtrip struct data and returns filtered fieldtrip struct 
 % rejects outliers .. using min, max, var
 % if one of the aoi (area of interest) is a bad channel
@@ -6,7 +6,7 @@ function [ final_data_interp ] = lv_clean_segmented(segmented_data, method, stat
 % it using the neighboring channels.
 
 
-if isfield(segmented_data,'lv_layout') % put the layout in segmented_data.lv_layout
+if isfield(segmented_data,'lv_layout') % put the layout in segmented_data.lv_layout 
     lv_layout = segmented_data.lv_layout;
     aoi = lower(segmented_data.aoi);
 else
@@ -15,7 +15,7 @@ else
 end
 % area of interest (aoi)
 bad_channels_threshold = 0.25;
-aoi_idx = find(ismember( segmented_data.label, aoi));
+aoi_idx = find(ismember( lower(segmented_data.label), aoi));
 
 % to 3d if it isn't 3d .. 3d is the golden tensor
 if length(size(segmented_data.trial)) < 3
@@ -23,19 +23,20 @@ if length(size(segmented_data.trial)) < 3
     cfg             = [];
     cfg.keeptrials  = 'yes';
     data = ft_timelockanalysis(cfg, segmented_data);
+else 
+    data = segmented_data;
 end
 
 fprintf(['\n Rejecting outliers \n']);
 
-
 % std_away = 2;
-% Perc_threshold = 100*erf(std_away/sqrt(2)); % Calculates the percentile corresponding to the sd above; because distributions often aren't Gaussian.
-% to keep the data around the mean approximately: 95% of the data with a room for error
+% Perc_threshold = 100*erf(std_away/sqrt(2)); % to keep the data around the mean approximately: 95% of the data with a room for error
 
-cfg = [];
+cfg = []; 
 cfg.latency = stats_window; % this is the time window for which we do the stats.
+data_trialinfo = data.trialinfo;
 [data] = ft_selectdata(cfg, data);
-
+data.label = lower(data.label); segmented_data.label = lower(segmented_data.label);
 
 %% getting the stats in time
 all_var = squeeze(var(data.trial,0, 3)); % trl_ch
@@ -43,13 +44,9 @@ all_min = squeeze(min(data.trial,[], 3));
 all_max = squeeze(max(data.trial,[], 3));
 all_mean = squeeze(mean(data.trial, 3));
 
-% calculating the thresholds and determining the good trials
+% calculating the thresholds and determining good trials
 goodFlags_matrix = nan(size(all_var));
-for i=1:size(all_var,2)
-    %     var_threshold = prctile(all_var(:,i), Perc_threshold);   % One sided threshold!
-    %     min_threshold = -prctile(-all_min(:,i), Perc_threshold); % because it will prctile works on positive then flip the negative min then threshold and negate again
-    %     max_threshold = prctile(all_max(:,i), Perc_threshold);
-    
+for i=1:size(all_var,2) 
     % interquartile range (IQR) based outliers rejection
     iqr_val = iqr(all_var(:,i)); q1=prctile(all_var(:,i),25); q3=prctile(all_var(:,i),75);
     var_threshold = [q1-(1.5*iqr_val)   q3+(1.5*iqr_val)]; % two sided threshold
@@ -68,13 +65,9 @@ for i=1:size(all_var,2)
         & all_min(:,i)>min_threshold(1) & all_min(:,i)<min_threshold(2) ...
         & all_max(:,i)>max_threshold(1) & all_max(:,i)<max_threshold(2) ...
         & all_mean(:,i)>mean_threshold(1) & all_mean(:,i)<mean_threshold(2);
-    %& all_max(:,i)>0 & all_min(:,i)<0;
-    
-    %     goodFlags_matrix(:,i) = all_var(:,i)<var_threshold & all_min(:,i)>min_threshold & all_max(:,i)<max_threshold ...
-    %         & all_min(:,i)<0 & all_max(:,i)>0; % trl_ch
 end
 % if we don't want to interpolate some channels that are very important to
-% the analysis then reject the trial if more than 25%
+% the analysis we reject the trial if bad on that important channel(s)
 bad_aoi = sum(~goodFlags_matrix(:,aoi_idx),2) > length(aoi_idx)*(bad_channels_threshold);
 goodFlags_matrix(bad_aoi , :) = 0;
 fprintf(['\n ' num2str( sum(bad_aoi) ) ' trials rejected for being bad on aoi. \n']);
@@ -99,11 +92,7 @@ cfg.feedback     = 'no';
 
 neighbours	= ft_prepare_neighbours(cfg);
 
-
-% ft_neighbourplot(cfg,data_interp); % plots topography and shows neighbors
-% figure; ft_plot_layout(cfg.layout);
-%
-
+ 
 %% doing the interpolation by aggregating similar trials together
 tic
 data_interp = data;
@@ -114,8 +103,7 @@ for i=1:size(unique_trls,1)
     if any( ismember(union(perfect_trls,bad_trls), idx )  ), continue; end
     
     cfg                  = [];
-    cfg.badchannel       = data.label( ~goodFlags_matrix(idx(1),:) );
-    cfg.neighbourdist    = 4;
+    cfg.badchannel       = data.label( ~goodFlags_matrix(idx(1),:) ); 
     cfg.neighbours     	 = neighbours;
     cfg.layout           = lv_layout;
     cfg.method           = 'spline';
@@ -125,16 +113,18 @@ for i=1:size(unique_trls,1)
     
     interpAvg = ft_channelrepair(cfg ,data);
     
-    % sanity check that the labels match
-    lv_match_channels(data, interpAvg.label)
+    % match the order of labels after the repair with the labels of data
+    newIdx = lv_match_channels(data, interpAvg.label);
     
-    if isfield(interpAvg,'avg'), data_interp.trial(idx,:,:) = interpAvg.avg; inter_co=inter_co+length(idx); else
-        data_interp.trial(idx,:,:) = interpAvg.trial; inter_co=inter_co+length(idx); end
+    if isfield(interpAvg,'avg'), data_interp.trial(idx,newIdx,:) = interpAvg.avg; inter_co=inter_co+length(idx); else
+        data_interp.trial(idx,newIdx,:) = interpAvg.trial; inter_co=inter_co+length(idx); end
 end
 toc
 cfg = [];
 cfg.trials = all_good_trls;
 [final_data_interp ] = ft_selectdata(cfg, data_interp);
+
+final_data_interp.trialinfo = data_trialinfo(all_good_trls);
 
 check_signals_plots(data_interp, perfect_trls, all_good_trls, all_stats, sbj)
 
@@ -238,7 +228,7 @@ end
 
 
 
-function  lv_match_channels(segmented_data, label)
+function newIdx = lv_match_channels(segmented_data, label)
 % check that the labels are exactly the same
 
 newIdx=[];
@@ -248,7 +238,7 @@ end
 
 idx = 1:length(label);
 if any( idx' - newIdx  )
-    error('Channel mismatch');
+    warning('Channel mismatch');
 end
 
 end

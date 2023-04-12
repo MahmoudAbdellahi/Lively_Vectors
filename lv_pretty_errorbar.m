@@ -238,7 +238,7 @@ if cfg.correctm==0, cfg.correctm = 'cluster'; % bonferoni, fdr etc.,
     cfg.alpha               = 0.05; 
     cfg.tail                = 1; 
     cfg.clustertail         = 1; 
-    cfg.numrandomization    = 10000;
+    cfg.numrandomization    = 100000;
 else
     cfg.correctm = 'tfce'; cfg.tfce_H = 2; cfg.tfce_E = 0.5; % default setting
     cfg.numrandomization = 'all';   % there are X participants, so 2^X possible raondomizations
@@ -317,7 +317,7 @@ cond2S =  cond2;
 cfg = [];
 cfg.test            = 'permutation';
 cfg.correctm        = 'cluster';
-cfg.n_permutations  = 10000;
+cfg.n_permutations  = 100000;
 cfg.clustercritval  = 1.96; % sample alpha
 cfg.alpha = 0.05;
 % Level 2 stats settings
@@ -354,7 +354,7 @@ cond2S =  cond2;
 cfg = [];
 cfg.test            = 'permutation';
 cfg.correctm        = 'cluster';
-cfg.n_permutations  = 10000;
+cfg.n_permutations  = 100000;
 cfg.clustercritval  = 1.96; % sample alpha 
 cfg.alpha = 0.05;
 % Level 2 stats settings

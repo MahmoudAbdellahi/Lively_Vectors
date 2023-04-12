@@ -90,7 +90,7 @@ for j=1:length(complex_sine_wave_t) % all frequencies and specific time
         origin = [v(i,:) j];
     end
     fprintf(['finished plotting: ' num2str(i) ' vectors. \n'])
-    pause(0); set(h,'Visible','off'); % call time
+    pause(0.1); set(h,'Visible','off'); % call time
 
     tip = sum(temp);
     hold on,

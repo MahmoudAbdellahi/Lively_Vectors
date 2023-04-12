@@ -1,8 +1,8 @@
 function [ erps_struct ] = lv_erp(varargin) %data, do_stats, do_plot
-% calculates the erps for single sbj or group level and does stats on the
-% result and plots the clusters
+% calculates the ERPs for single participant or group level and performs stats. on the
+% result by calling lv_plot_topo
 % if group level then data.trial should contain erps of cond1 then cond2 on
-% the first dim of every sbj so the odd idx is cond1 and cond2 is even
+% the first dim so the odd idx is cond1 and cond2 is even
 
 fprintf(['\n Performing ERP analysis \n']);
 
@@ -26,10 +26,10 @@ end
 pos = [interp1([min(lv_layout.pos(:,1)) max(lv_layout.pos(:,1))],[0.1 0.9],lv_layout.pos(:,1)) ...
     interp1([min(lv_layout.pos(:,2)) max(lv_layout.pos(:,2))],[0.1 0.9],lv_layout.pos(:,2))];
 
-% if there is trialinfo then we are in one sbj, level1
+% if there is trialinfo then we have one sbj, level1
 if isfield(data,'trialinfo')
     % erps calculation
-    conds = unique(data.trialinfo(:,1)); if length(conds)>2, error('data has more than two conditions!!'); end
+    conds = unique(data.trialinfo(:,1)); if length(conds)>2, error('data has more than two conditions!'); end
     
     baseline = [ ]; % ex: [-0.5 0]
     fprintf(['baseline is set to be: ' num2str(baseline) '\n']);
@@ -44,9 +44,7 @@ if isfield(data,'trialinfo')
     
     do_stats=0; % for sbj level only visualise don't do stats because for sbj lvl we can't do it in the same
     % way as the group because the no. trials for conditions is
-    % different so we can't calculate the stats.. and trials are
-    % independent not like sbj so can't do tstat!! and the independent is
-    % done with: h = ttest2(x,y)
+    % different so we can't calculate the stats.. and trials are independent
     if do_plot==1
         lv_plot_topo(data, conds, do_stats, pos);
     end

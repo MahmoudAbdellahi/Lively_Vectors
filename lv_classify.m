@@ -10,7 +10,7 @@ function [ txtAuc ] = lv_classify(cfg)
 % cfg.tst = im; cfg.folds=nan;
 % [ txtAuc ] = lv_classify(cfg);
 
-observation_weights = cfg.weights;
+if isfield(cfg,'weights'), observation_weights = cfg.weights; else observation_weights = ones(size(cfg.trn.trial,1),1); end
 method = {'axtime','timextime'};
 classifier_type = {'lda','svm','random_forest','naive_bayes'};
 if ~isfield(cfg,'method')
@@ -56,6 +56,7 @@ for fi = 1:CVO.NumTestSets % folds
     fprintf(['\n Fold: ' num2str(fi) '\n']);
     for ch=1:length(channels) % possible seperate channel classification
         TRAIN=TRAIN_hold(:,cell2mat(channels(ch)),:); if isnan(cfg.folds), TEST=TEST_hold(:,cell2mat(channels(ch)),:); end
+        
         if isnan(folds) % txt for two datasets
             fold_TRAIN = TRAIN; fold_TEST = TEST;
             fold_TRAIN_GROUP = GROUP_TRAIN;
@@ -111,7 +112,8 @@ for fi = 1:CVO.NumTestSets % folds
             % that's what we need because the data is here still 3d
 
         end
-
+        
+        if isfield(cfg,'weights'), observation_weights = cfg.weights; else observation_weights = ones(size(fold_TRAIN,1),1); end % weights are relative to the training fold
         % datatypes conversion
         if strcmp(class(fold_TRAIN),'tall'), fold_TRAIN=gather(fold_TRAIN); TRAIN=gather(TRAIN); fold_TEST=gather(fold_TEST); end
         if numel(fold_TRAIN)>(2154*13*1601), fold_TRAIN=single(fold_TRAIN); TRAIN=single(TRAIN); fold_TEST=single(fold_TEST); end % size limit (2154*13*1601) if exceeded will convert to single
@@ -120,8 +122,8 @@ for fi = 1:CVO.NumTestSets % folds
         % because in domain align all timepts of train are aggregated but we need to separate them later on to adapt to trn's domain
         if strcmp(cfg.perf_measure,'dval')==1, fold_dval = CVO.test(fi); else fold_dval = []; end % this one was if fi>1, fold_dval = CVO.test(fi); else fold_dval=1; end but it was giving error when we use 10fold to get dvals
         %         progressbar = ParforProgressbar(size(fold_TRAIN,3),'title', 'Classification progress');
-        parfor (j=1:size(fold_TRAIN,3), workers) % no. workers,, will be 0 if not parallel and max available if parallel
-%                                             for j=1:size(fold_TRAIN,3)
+%         parfor (j=1:size(fold_TRAIN,3), workers) % no. workers,, will be 0 if not parallel and max available if parallel
+                                            for j=1:size(fold_TRAIN,3)
 
             [outclass,~,hh] = low_lvl_classify(squeeze(fold_TEST(:,:,dimension(j))),  squeeze(fold_TRAIN(:,:,j)) ,fold_TRAIN_GROUP, cfg.classifier_type, observation_weights); % (CVO.training(fi)) for weighted classification and folds
 
@@ -263,25 +265,34 @@ switch classifier_name
             %         TRAIN2{1} = cell2mat(TRAIN); % to aggregate trials in one long sequence
             %         TRAIN_GROUP2{1}  = categorical(cell2mat(TRAIN_GROUP));
             % nan values are considered missing (jittering) so we remove them
-            
+            onePoint = 1;
+            if onePoint==1
+                % if we have one label and not axtime classification
+                for i=1:length(TRAIN_GROUP), ss(1,i) = TRAIN_GROUP{1,i}(1); end
+                outcome = 'last';
+                TRAIN_GROUP = ss';
+            else
+                outcome = 'sequence';
+                TRAIN_GROUP = cellfun(@(x,y) y(1:length(x)),TRAIN,TRAIN_GROUP, 'Un',0);
+            end
+
             TRAIN = cellfun(@(x) x(:,~isnan(mean(x,1))),TRAIN, 'Un',0);
-            TRAIN_GROUP = cellfun(@(x,y) y(1:length(x)),TRAIN,TRAIN_GROUP, 'Un',0);
             TEST = cellfun(@(x) x(:,~isnan(mean(x,1))),TEST, 'Un',0);
             
             % RNN train
             inputSize = size(TRAIN{1},1);
-            numHiddenUnits = 20;
-            numClasses = 4;%length(unique(cell2mat(cellfun(@(x) (str2double(categories(x(1)))),TRAIN_GROUP,'Un',0))));
+            numHiddenUnits = 50;
+            numClasses = 2;%length(unique(cell2mat(cellfun(@(x) (str2double(categories(x(1)))),TRAIN_GROUP,'Un',0))));
             layers = [ ...
                 sequenceInputLayer(inputSize)
-                lstmLayer(numHiddenUnits,'OutputMode','sequence') %'StateActivationFunction','tanh','GateActivationFunction','sigmoid'
+                lstmLayer(numHiddenUnits,'OutputMode',outcome) %'StateActivationFunction','tanh','GateActivationFunction','sigmoid'
                 % bilstmLayer can be used
                 fullyConnectedLayer(numClasses)
                 softmaxLayer
                 classificationLayer];
             options = trainingOptions('adam', ...
-                'MaxEpochs',60, ... % was 60 
-                'Verbose',0); %...'Plots','training-progress');
+                'MaxEpochs',500, ... % was 60 
+                'Verbose',0, 'Plots','training-progress'); %...'Plots','training-progress');
             net = trainNetwork(TRAIN,TRAIN_GROUP,layers,options);  % XTrain: guess here it was sbjs for us it will be trials
 
             %             net.Layers(2, 1).StateActivationFunction='purelin';
@@ -290,10 +301,17 @@ switch classifier_name
             [YPred] = classify(net,TEST);
             classes_labels = [categorical(cellstr('c1')) ;categorical(cellstr('c2')); ...
                 categorical(cellstr('c3')); categorical(cellstr('c4'))];
-            for i=1:size(YPred,1) %trials
-                for j=1:size(YPred{i,1},2) %time
-                    temp(i,j) = find(ismember(classes_labels,YPred{i,1}(j)));
+            if onePoint~=1
+                for i=1:size(YPred,1) %trials
+                    for j=1:size(YPred{i,1},2) %time
+                        temp(i,j) = find(ismember(classes_labels,YPred{i,1}(j)));
+                    end
                 end
+            else
+                for i=1:size(YPred,1) %trials
+                        temp(i,1) = find(ismember(classes_labels,YPred(i,1)));
+                end
+                temp = repmat(temp,1,size(TRAIN{1, 1},2));
             end
             %p = cell2mat(cellfun(@(x) str2num(char((x)))',YPred,'Un',0));%coverting the result to vector
             outclass = temp(:); posterior=0; err=0;
@@ -558,7 +576,7 @@ Ytrain  = TRAIN_GROUP;
 switch method
     case 'distance'
         [outclass,distances] = mdm(COVtest,COVtrain,Ytrain,metric_mean,metric_dist);
-        posterior = distances ./ repmat(sum(distances,2),1,size(distances,2)); % softmax the distance to posterior
+        posterior = 1-(distances ./ repmat(sum(distances,2),1,size(distances,2))); % softmax the distance to posterior
     case 'tangent'
         classifier = {'lin_svm'}; % another classifier that operates in the tangent space
         [outclass,posterior] = tslda_matlab(COVtest,COVtrain,Ytrain,metric_mean,metric_dist, classifier);

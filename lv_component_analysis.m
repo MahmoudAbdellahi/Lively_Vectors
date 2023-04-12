@@ -366,7 +366,7 @@ if strcmp(method,'csp')
     % normally CSP filters are good on both ends of the spectrum meaning
     % that the first and last filters and good and as you go towards the
     % middle they are less informative...
-    way = 2;
+    way = 1;
     if strcmp(cfg.step,'calculate')
         %         S1 = cov( cell2mat( data.trial(data.trialinfo==1) )' );
         %         S2 = cov( cell2mat( data.trial(data.trialinfo==2) )' );

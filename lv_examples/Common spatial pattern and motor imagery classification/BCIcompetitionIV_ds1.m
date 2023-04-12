@@ -11,9 +11,9 @@ TF_temp=[];
 
 % method
 power_classification_axtime = 0;
-csp = 0;
+csp = 1;
 riemannian = 0;
-RNN = 1;
+RNN = 0;
 %%
 for nn=1:length(ppnt_names)
     load([raw_path ppnt_names{nn} '.mat']);

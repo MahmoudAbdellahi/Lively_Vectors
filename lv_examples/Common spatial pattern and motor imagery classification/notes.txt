@@ -1,0 +1,7 @@
+This uses the BCI competition IV dataset 1 
+it shows how to use the following lv functions:
+lv_feature_extractor .. to get the power features using hilbert transform in the mu rhythm range
+Riemannian classification inside lv_classify .. to classify with Riemannian based geometry on the covariance matrices
+lv_component_analysis .. to perform common spatial pattern analysis and get the spatial filters that miximise the variance for one class and minimise it for the other
+lv_classify .. to perform classification across time and also on one time point 
+lv_pretty_errorbar .. to visualise the results and perform statistical analysis and test for significance

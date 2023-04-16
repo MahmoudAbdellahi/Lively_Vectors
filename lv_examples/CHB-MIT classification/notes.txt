@@ -1,0 +1,5 @@
+This uses the CHB-MIT Scalp EEG Database
+available at: https://physionet.org/content/chbmit/1.0.0/
+it shows how to use the following lv functions:
+lv_feature_extractor .. to get the power spectrum using the fourier transformation
+lv_classify .. to perform classification at using the extracted features using a neural network with fully connected layer

@@ -11,9 +11,9 @@ TF_temp=[];
 
 % method
 power_classification_axtime = 0;
-csp = 0;
+csp = 1;
 riemannian = 0;
-RNN = 1;
+RNN = 0;
 %%
 for nn=1:length(ppnt_names)
     load([raw_path ppnt_names{nn} '.mat']);
@@ -178,7 +178,7 @@ for nn=1:length(ppnt_names)
     end
 
     %% classification with Recurrent Neural Network
-    if RNN==1
+    if RNN==1 % 
         datatrn.trial = datatrn_raw.trial.^2;
         datatst.trial = datatst_raw.trial.^2;
         datatrn.trial = zscore(datatrn.trial,[],1); datatst.trial = zscore(datatst.trial,[],1);

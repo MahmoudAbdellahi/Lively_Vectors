@@ -249,7 +249,7 @@ switch classifier_name
             softmaxLayer
             classificationLayer];
         options = trainingOptions('adam','InitialLearnRate',0.01, ...
-            'MaxEpochs',5,'Verbose',false,'Plots','training-progress'); % ,'Plots','training-progress'
+            'MaxEpochs',500,'Verbose',false,'Plots','training-progress'); % ,'Plots','training-progress'
         net = trainNetwork(TRAIN,TRAIN_GROUP',layers,options);
         % NN test
         [YPred] = classify(net,TEST);

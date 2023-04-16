@@ -11,9 +11,9 @@ TF_temp=[];
 
 % method
 power_classification_axtime = 0;
-csp = 1;
+csp = 0;
 riemannian = 0;
-RNN = 0;
+RNN = 1;
 %%
 for nn=1:length(ppnt_names)
     load([raw_path ppnt_names{nn} '.mat']);
@@ -179,9 +179,9 @@ for nn=1:length(ppnt_names)
 
     %% classification with Recurrent Neural Network
     if RNN==1
-        datatrn.trial = datatrn_raw.trial;
-        datatst.trial = datatst_raw.trial;
-
+        datatrn.trial = datatrn_raw.trial.^2;
+        datatst.trial = datatst_raw.trial.^2;
+        datatrn.trial = zscore(datatrn.trial,[],1); datatst.trial = zscore(datatst.trial,[],1);
         cfg=[];
         cfg.method = 'axtime'; cfg.method = 'deep'; % distance tangent pairing
         cfg.classifier_type = {'RNN'};

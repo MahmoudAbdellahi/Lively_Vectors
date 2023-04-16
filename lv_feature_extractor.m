@@ -38,6 +38,16 @@ switch cfg.method
             phase_vals = angle(hilbert_dat);
             features_data.trial = [cos(phase_vals) sin(phase_vals)];
         end
+
+    case 'spectrum'
+        % the third dim should be time .. keeps the dims and get the
+        % fourier coeffs of the signals
+        dat = data.trial;
+        nyquistVar = cfg.sampling_rate/2; N = size(dat,3);
+        pts_hz = linspace(0,nyquistVar,(N/2)+1);
+        coeff = fft(dat,[],3);
+        features_data.trial = (abs(coeff(:,:,1:length(pts_hz)))*2)/N;  % spectrums
+
     case 'time_window' % in this one we don't take the mean of the time pts. we put them together in the FV (in channel dimension)
         wind_time = cfg.wind_time;
         fsample = data.fsample;

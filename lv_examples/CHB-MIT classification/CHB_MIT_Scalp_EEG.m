@@ -110,6 +110,7 @@ end
 % load all_features all_features
 % load all_labels all_labels
 
+% could reject outliers..
 
 % classification using fully connected layer 
 cfg=[]; cfg.method = 'timextime';

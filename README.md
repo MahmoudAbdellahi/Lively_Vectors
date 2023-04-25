@@ -1,10 +1,8 @@
-[![LV.png](https://i.postimg.cc/LsJNgsBL/LV.png)](https://postimg.cc/1gZpLsd3)
-
+<img src="https://i.postimg.cc/LsJNgsBL/LV.png" alt="Paris" class="center">
 <h2> <b> LivelyVectors (lv) </h2> </b>
 
 ---
 
-<h3>
 <li>
 Can be used for EEG analyses and other multivariate data, can be used with videos, speech, data from sensors, etc.
 </li>
@@ -35,8 +33,7 @@ Visualises correlations with statistics.
 Visualises statistical results with p-values.
 
 <li> Calls some functions from fieldtrip toolbox, and some functions from few toolboxes that are relevant for some analyses. </li>
-</h3>
-
+ 
 ---
 
 ![screenshots.png](https://i.postimg.cc/TY2MsrJ9/screenshots.png)
@@ -57,8 +54,6 @@ Visualises statistical results with p-values.
        
    </p>
 </br>
-
----
 
 ---
 

@@ -1,4 +1,6 @@
-<img src="https://i.postimg.cc/LsJNgsBL/LV.png" alt="Paris" class="center">
+<p align="center">
+  <img src="https://i.postimg.cc/LsJNgsBL/LV.png" alt="lv"/>
+</p>
 <h2> <b> LivelyVectors (lv) </h2> </b>
 
 ---

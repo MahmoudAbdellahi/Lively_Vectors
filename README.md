@@ -72,7 +72,7 @@ Visualises statistical results with p-values.
 
 [![Time Frequency analysis of EEG signals (part 1)](https://i.postimg.cc/qBxx1FwN/thumb.png)](https://youtu.be/Gn_W1TPJ0Tk)
 
-[![Time Frequency analysis of EEG signals (part 2)](https://i.postimg.cc/QdHgxd37/thumb2.png)](https://youtu.be/TK07zhj7vOM)
+[![Time Frequency analysis of EEG signals (part 2)](https://i.postimg.cc/3xYd74xn/tfanalysis.png)](https://youtu.be/TK07zhj7vOM)
 
 [![Correcting for multiple comparisons with cluster-based permutation](https://i.postimg.cc/bvbnTHty/thumb.jpg)](https://youtu.be/Dx143jsZDIs)
 

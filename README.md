@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.postimg.cc/LsJNgsBL/LV.png" alt="lv"/>
+  <img src="https://i.postimg.cc/sxghVMck/figure-Oflv.png" alt="lv"/>
 </p>
 <h2> <b> LivelyVectors (lv) </h2> </b>
 

@@ -115,11 +115,11 @@ end
 % classification using fully connected layer 
 cfg=[]; cfg.method = 'timextime';
 cfg.classifier_type = {'fully_connected'}; 
-cfg.perf_measure = 'auc';
+cfg.perf_measure = 'acc';
 cfg.trn.trial = all_features; cfg.trn.trialinfo=all_labels; 
 cfg.folds=5; cfg.do_parallel=1;
 result = lv_classify(cfg); % acc at every trn time
-mean(result)
+mean(result) * 100
 
 
  

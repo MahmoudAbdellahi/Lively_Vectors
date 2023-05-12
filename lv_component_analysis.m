@@ -349,7 +349,7 @@ end
 %% CSP
 if strcmp(method,'csp')
     % the info of discrimination between classes should be already in the
-    % variance before you use CSP .. what CSP does it help maximizing this
+    % variance before you use CSP .. CSP helps maximizing this
     % difference of variance between classes which leads to better
     % classification ...  it is normally used on band power as this is when
     % the discr. arises in the variance .. but you may use it with any data
@@ -375,10 +375,15 @@ if strcmp(method,'csp')
         comp=[];
         if way == 1
             [W,val] = eig(S1,S1+S2); % generalized decomposition (diagonalization) of data in S1 and S1+S2
-        else
-            P = whiten(S1 + S2, 1e-14);        % the average cov and get the whitening
+        else % based on Boris Reuderink implementation in 2012 and ft
+            %     Zoltan J. Koles. The quantitative extraction and topographic mapping of
+            %     the abnormal components in the clinical EEG. Electroencephalography and
+            %     Clinical Neurophysiology, 79(6):440--447, December 1991.
+            [U,lambda,~] = svd(S1+S2);
+            P = (diag(diag(lambda).^-0.5)) * U'; % whitening 
             [B,~,~] = svd(P * S1 * P');  % whiten one of the classes and see its eigs
-            W = B' * P;
+            W = (B' * P)';
+            % check: W*(S1+S2)*W' = I
             val = diag(1:size(W,1));
         end
         

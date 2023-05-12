@@ -6,14 +6,16 @@
 clear all
 %load data and format
 ppnt_names = {'b','c','d','e','g'}; % removed a and f because not left vs right hand
+cd('D:\sul''s code\Matt\sleep\erps\Organised\New exp\lv_examples\Common spatial pattern and motor imagery classification')
 raw_path = '.\data\BCICIV_calib_ds1';
 TF_temp=[];
 
 % method
 power_classification_axtime = 0;
-csp = 1;
+csp = 1; % common spatial pattern
 riemannian = 0;
-RNN = 0;
+RNN = 0; 
+dense = 0;
 %%
 for nn=1:length(ppnt_names)
     load([raw_path ppnt_names{nn} '.mat']);
@@ -57,6 +59,7 @@ for nn=1:length(ppnt_names)
 
     data.trialinfo = data_trialinfo;
 
+     
     %% visualising the power across time
     if power_classification_axtime==1
         % baseline
@@ -169,7 +172,7 @@ for nn=1:length(ppnt_names)
         datatrn.trial = feat_trn; datatst.trial = feat_tst;
         %% Riemannian classification 
         cfg=[];
-        cfg.method = 'axtime'; cfg.classifier_type = {'Riemannian','distance'}; % distance tangent pairing
+        cfg.method = 'axtime'; cfg.classifier_type = {'Riemannian','pairing'}; % distance tangent pairing
         cfg.do_parallel = 0; cfg.perf_measure='auc';
         cfg.trn = datatrn; cfg.trn.trialinfo=datatrn.trialinfo';  cfg.folds=nan;
         cfg.tst = datatst; cfg.tst.trialinfo=datatst.trialinfo';
@@ -191,6 +194,22 @@ for nn=1:length(ppnt_names)
         auc(nn,:) = lv_classify(cfg);
         continue;
     end
+
+    %% classification with a fully connected layer on the aggregated ch_time features .. should be done with different features when a task is time locked
+%     if dense==1
+%         datatrn.trial = reshape(riem_trn.trial.^2,size(riem_trn.trial,1),[]);
+%         datatst.trial = reshape(riem_tst.trial.^2,size(riem_tst.trial,1),[]);
+%         cfg=[];
+%         cfg.method = 'axtime'; 
+%         cfg.classifier_type = {'fully_connected'};
+%         cfg.do_parallel = 0; cfg.perf_measure='auc';
+%         cfg.trn = datatrn; cfg.trn.trialinfo=datatrn.trialinfo';  cfg.folds=nan;
+%         cfg.tst = datatst; cfg.tst.trialinfo=datatst.trialinfo';
+%         auc(nn,:) = lv_classify(cfg);
+% 
+% 
+%     end
+
 end
 
 if power_classification_axtime==1
@@ -200,6 +219,7 @@ if power_classification_axtime==1
     % 2 for non parametric cluster-based permutation, 99 for non 
     lv_pretty_errorbar(data.time,right_hemi_c1,right_hemi_c2, 2);
 end
+
 
 auc
 mean_auc = mean(auc)

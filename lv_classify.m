@@ -197,6 +197,12 @@ switch classifier_name
         Mdl = fitcsvm(TRAIN,TRAIN_GROUP, 'KernelFunction' ,'rbf');
         Mdl = fitSVMPosterior(Mdl);  % to fit a sigmoid and get the posterior for the classes o.w. it will be like regression .. you have to make sure.
         [outclass,posterior] = predict(Mdl,TEST); err=1;
+
+    case 'knn'
+        k = sqrt(size(TRAIN,1));
+        if mod(k,2)==0, k = k+1; end
+        Mdl = fitcknn(TRAIN,TRAIN_GROUP,'NumNeighbors',k);
+        [outclass,posterior] = predict(Mdl,TEST); err = 1;
     case 'random_forest'
         t = templateTree('NumVariablesToSample','all',...
             'PredictorSelection','interaction-curvature','Surrogate','on');
@@ -244,12 +250,23 @@ switch classifier_name
         TRAIN_GROUP=categorical(TRAIN_GROUP);
         layers = [  % this is a linear preceptron we may add activation here for non-linear classification, examples: leakyReluLayer and sigmoidLayer after featureInputLayer
             featureInputLayer(size(TRAIN,2))
-            sigmoidLayer
+            reluLayer
+            dropoutLayer
+            fullyConnectedLayer(floor(size(TRAIN,2)/2) )
+            reluLayer
+            dropoutLayer
+            fullyConnectedLayer(floor(size(TRAIN,2)/4) )
+            reluLayer
+            dropoutLayer
+            fullyConnectedLayer(floor(size(TRAIN,2)/8) )
+            reluLayer
+            dropoutLayer
+
             fullyConnectedLayer(length(unique(TRAIN_GROUP)))
             softmaxLayer
             classificationLayer];
         options = trainingOptions('adam','InitialLearnRate',0.01, ...
-            'MaxEpochs',500,'Verbose',false,'Plots','training-progress'); % ,'Plots','training-progress'
+            'MaxEpochs',5000,'Verbose',false,'Plots','training-progress'); % ,'Plots','training-progress'
         net = trainNetwork(TRAIN,TRAIN_GROUP',layers,options);
         % NN test
         [YPred] = classify(net,TEST);
@@ -286,12 +303,13 @@ switch classifier_name
             layers = [ ...
                 sequenceInputLayer(inputSize)
                 lstmLayer(numHiddenUnits,'OutputMode',outcome) %'StateActivationFunction','tanh','GateActivationFunction','sigmoid'
+                dropoutLayer
                 % bilstmLayer can be used
                 fullyConnectedLayer(numClasses)
                 softmaxLayer
                 classificationLayer];
             options = trainingOptions('adam', ...
-                'MaxEpochs',500, ... % was 60 
+                'MaxEpochs',1000, ... % was 60 
                 'Verbose',0, 'Plots','training-progress'); %...'Plots','training-progress');
             net = trainNetwork(TRAIN,TRAIN_GROUP,layers,options);  % XTrain: guess here it was sbjs for us it will be trials
 
@@ -581,7 +599,7 @@ switch method
         classifier = {'lin_svm'}; % another classifier that operates in the tangent space
         [outclass,posterior] = tslda_matlab(COVtest,COVtrain,Ytrain,metric_mean,metric_dist, classifier);
     case 'pairing'
-        classifier = {'lin_svm'}; % another classifier that operates on distances
+        classifier = {'naive_bayes'}; % another classifier that operates on distances
         [outclass,posterior] = lv_mdm(COVtest,COVtrain,Ytrain,metric_mean,metric_dist, classifier);
 end
 

@@ -36,8 +36,7 @@ Visualises statistical results with p-values.
 
 <li> Calls some functions from fieldtrip toolbox, and some functions from few toolboxes that are relevant for some analyses. </li>
 
-[![Video Title](https://img.youtube.com/vi/SBGG4WNweEc/0.jpg)](https://www.youtube.com/watch?v=SBGG4WNweEc)
- 
+
 ---
 
 ![screenshots.png](https://i.postimg.cc/TY2MsrJ9/screenshots.png)

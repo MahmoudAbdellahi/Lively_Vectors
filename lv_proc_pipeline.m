@@ -3,7 +3,7 @@
 
 % params
 rawdir = 'D:\dataHub\lv_cleaning_erp_tf\all_data\Participant files\ppnt13';
-addpath('D:\codeHub\matlab\Toolboxes\fieldtrip-20190419')
+addpath('D:\codeHub\matlab\Toolboxes\fieldtrip-20190419') % fieldtrip-20190419 fieldtrip-20250107 fieldtrip-20250114
 ft_defaults
 
 type = 'sleep'; % 'sleep' 'img'
@@ -21,7 +21,7 @@ required_sampling_rate = 200;
 
 
 
-%% segmenting and cleaning
+%% segmenting and automatic cleaning
 for nn=1:numel(sbj)
     data_parts = lv_check_parts(sbj(nn),type, rawdir);
     cleaned_data = cell(1,data_parts);

@@ -95,7 +95,19 @@ cfg.feedback     = 'no';
 
 neighbours	= ft_prepare_neighbours(cfg);
 
- 
+
+% % add the electrode information to data needed in fieldtrip 2025
+% cfg = [];
+% cfg.layout = lv_layout;
+% lay = ft_prepare_layout(cfg);
+% elec = [];
+% elec.label = lay.label;
+% elec.elecpos = lay.pos;  % Use the positions from the layout
+% elec.chanpos = lay.pos;  % Same as elecpos for EEG
+% elec.unit = 'cm';        % Typically cm, but adjust if needed
+% elec.type = 'eeg';
+% data.elec = elec;
+
 %% doing the interpolation by aggregating similar trials together
 tic
 data_interp = data;
@@ -112,7 +124,7 @@ for i=1:size(unique_trls,1)
     cfg.method           = 'spline';
     cfg.feedback         = 'no';
     cfg.trackcallinfo	 = 'no';
-    cfg.trials           = idx;
+    cfg.trials           = idx; 
     
     interpAvg = ft_channelrepair(cfg ,data);
     

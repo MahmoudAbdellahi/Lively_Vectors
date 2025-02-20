@@ -44,7 +44,7 @@ end
 
 %% manual artifact rejection for trials and channels .. giving trial numbers to be rejected then rejecting
 % if we have different data and all is h5 we will need to use lv_save/load
-% instead of the save/load
+% instead of the saشve/load
 
 for nn=1:numel(sbj)
     fprintf(['\n Manual artifact rejection for trials and channels, subject: ' num2str(sbj(nn)) '\n']);

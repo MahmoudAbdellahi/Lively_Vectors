@@ -3,7 +3,7 @@
 
 % params
 rawdir = 'D:\dataHub\lv_cleaning_erp_tf\all_data\Participant files\ppnt13';
-addpath(['D:\sul''s', ' code\Toolboxes\fieldtrip-20190419'])
+addpath('D:\codeHub\matlab\Toolboxes\fieldtrip-20190419')
 ft_defaults
 
 type = 'sleep'; % 'sleep' 'img'
@@ -20,14 +20,15 @@ ref_ch = {''}; % {'TP9', 'TP10'};
 required_sampling_rate = 200;
 
 
+
 %% segmenting and cleaning
 for nn=1:numel(sbj)
     data_parts = lv_check_parts(sbj(nn),type, rawdir);
     cleaned_data = cell(1,data_parts);
     for part=1:data_parts
         cleaned_data{1,part} = lv_segment_filter_raw(sbj(nn),type, part, sleep_stage, ref_ch,rawdir, pre_stim, post_stim, required_sampling_rate);
-    end
-
+    end 
+    
     cleaned_data = cleaned_data(cell2mat(cellfun(@(x) (~isempty(x)),cleaned_data,'Un',0)));
     cleaned_data = ft_appenddata([],  cleaned_data{:}); % appending all parts together
 
@@ -44,7 +45,7 @@ end
 
 %% manual artifact rejection for trials and channels .. giving trial numbers to be rejected then rejecting
 % if we have different data and all is h5 we will need to use lv_save/load
-% instead of the saشve/load
+% instead of the save/load
 
 for nn=1:numel(sbj)
     fprintf(['\n Manual artifact rejection for trials and channels, subject: ' num2str(sbj(nn)) '\n']);

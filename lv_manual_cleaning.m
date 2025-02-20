@@ -122,7 +122,7 @@ begin = (1:trl_len:trl_len*size(temp_data.trial,1))'; temp_data.sampleinfo = [be
 % bad_trl = ceil(artf.artfctdef.visual.artifact ./ length(temp_data.time)); 
 
 idx = 1:size(data.trial,1); idx(possible_bad_trls_all)=[];
-cfg = []; cfg.trials = idx;
+cfg = []; cfg.trials = idx; 
 iqr_data = ft_selectdata(cfg, data);
 
 %% fieldtrip's manual visual inspection 

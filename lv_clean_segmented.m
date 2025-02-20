@@ -30,7 +30,7 @@ else
 end
 
 load lv_layout lv_layout;
-fprintf(['\n Rejecting outliers \n']);
+fprintf('\n Rejecting outliers \n');
 
 % std_away = 2;
 % Perc_threshold = 100*erf(std_away/sqrt(2)); % to keep the data around the mean approximately: 95% of the data with a room for error

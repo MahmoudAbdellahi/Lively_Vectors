@@ -156,11 +156,9 @@ for nn=1:numel(sbj)
     cleaned_data = lv_load([auto_cleaned_dir '\final_cleaned_after_inspection\part' num2str(sbj(nn)) '_' type '_manual_cleaned_N' num2str(sleep_stage)],'trial');
 
     cfg=[]; cfg.latency=[0 2]; cleaned_data=ft_selectdata(cfg,cleaned_data);% reducing to time of trial
+    % putting trials of left hand together and for right hand as well
     if conditions == 2
-        classes = unique(cleaned_data.trialinfo(:,1)); 
-        % configuring trialinfo for each of the conditions
-        cleaned_data.trialinfo(ismember(cleaned_data.trialinfo(:,1),classes(1)),1 ) = 1;  
-        cleaned_data.trialinfo(ismember(cleaned_data.trialinfo(:,1),classes(2)),1 ) = 2;
+        classes = unique(cleaned_data.trialinfo(:,1)); cleaned_data.trialinfo(ismember(cleaned_data.trialinfo(:,1),classes(1:2)),1 ) = 1; cleaned_data.trialinfo(ismember(cleaned_data.trialinfo(:,1),classes(3:4)),1 ) = 2;
     else
         cleaned_data.trial = [cleaned_data.trial ; cleaned_data.trial];
         cleaned_data.sampleinfo = [cleaned_data.sampleinfo ; cleaned_data.sampleinfo];
@@ -175,22 +173,13 @@ end
 % group lvl ERP
 erps.trial = erps_temp;
 
-% simulating an effect in erps around 0.5 second
-all_data = erps_temp;
-for i = 1:20
-    random_val = 5 + rand * 15;
-    erps_temp(1,:,100:150) = erps_temp(1,:,100:150)+random_val;
-    erps_temp(2,:,100:150) = erps_temp(2,:,100:150)-random_val;
-    all_data = [all_data ; erps_temp];
-end
-erps.trial = all_data;
-% end of simulated part comment to here if working with real data
-
+% simulating an effect in erps around 1 second
+erps_temp(:,:,100:150) = erps_temp(:,:,100:150)+
+erps.trial = erps_temp();
 
 lv_erp(erps, 0, 1); %data, do_stats, do_plot
 
-% with stats
-lv_erp(erps, 1, 1); %data, do_stats, do_plot
+
 %% TF analysis
 TF_temp=[];     
 for nn=1:numel(sbj)

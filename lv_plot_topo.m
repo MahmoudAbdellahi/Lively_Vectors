@@ -39,7 +39,7 @@ if length(size(data.trial))==3 %rpt_ch_time
         else
             % I am leaving correct_in_space however it will give an error
             % because it is not done in fieldtrip for ERPs I only find it
-            % for TF analysis, TODO: correct in space by compressing time topoplot bs ya3ne: ft_topoplotER
+            % for TF analysis, TODO: correct in space by compressing time topoplot 
             mo_pretty_errorbar(data.time,squeeze(data.trial(logical(cond1_idx) ,:,:)),squeeze(data.trial(logical(~cond1_idx) ,:,:)), 1, cluster_in_space);
         end
     end

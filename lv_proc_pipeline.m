@@ -193,7 +193,7 @@ erps.trial = all_data;
 lv_erp(erps, 0, 1); %data, do_stats, do_plot
 
 % with stats
-lv_erp(erps, 1, 1); %data, do_stats, do_plot
+% lv_erp(erps, 1, 1); %data, do_stats, do_plot
 %% TF analysis
 TF_temp=[];     
 for nn=1:numel(sbj)

@@ -60,10 +60,17 @@ if isfield(data,'trialinfo')
             if strcmp(data.method,'itpc'), [TF(1,:,:,:), TFdat] = do_tf(data, [], [0.5 25], data.method); end % dat, window, baseline, frequencies, method
         else
             cfg= []; cfg.trials = find(data.trialinfo(:,1)==conds(1));
-            [TF(1,:,:,:), TFdat] = do_tf(ft_selectdata(cfg, data), [data.baseline(1) data.baseline(end)], [1 30], []); % dat, window, baseline, frequencies, method
-
+            if ~isempty(data.baseline)
+                [TF(1,:,:,:), TFdat] = do_tf(ft_selectdata(cfg, data), [data.baseline(1) data.baseline(end)], [1 30], []); % dat, window, baseline, frequencies, method
+            else
+                [TF(1,:,:,:), TFdat] = do_tf(ft_selectdata(cfg, data), [], [1 30], []); % dat, window, baseline, frequencies, method 
+            end
             cfg= []; cfg.trials = find(data.trialinfo(:,1)==conds(2));
-            [TF(2,:,:,:), ~] = do_tf(ft_selectdata(cfg, data), [data.baseline(1) data.baseline(end)], [1 30], []);
+            if ~isempty(data.baseline)
+                [TF(2,:,:,:), ~] = do_tf(ft_selectdata(cfg, data), [data.baseline(1) data.baseline(end)], [1 30], []);
+            else
+                [TF(2,:,:,:), ~] = do_tf(ft_selectdata(cfg, data), [], [1 30], []);
+            end
         end
     end
     do_stats=0; % for ppnt level only visualise don't do stats

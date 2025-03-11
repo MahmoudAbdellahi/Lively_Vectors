@@ -31,7 +31,7 @@ if isfield(data,'trialinfo')
     % erps calculation
     conds = unique(data.trialinfo(:,1)); if length(conds)>2, error('data has more than two conditions!'); end
     
-    baseline = [ ]; % ex: [-0.5 0]
+    baseline = data.baseline; % ex: [-0.5 0]
     fprintf(['baseline is set to be: ' num2str(baseline) '\n']);
     if ~isempty(baseline)
         % single trial baseline

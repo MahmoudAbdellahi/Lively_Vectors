@@ -43,6 +43,10 @@ for nn=1:numel(sbj)
     lv_save(new_path, cleaned_data, 'trial');
 end
 
+
+%% look at the triggers .. remove any trial with short duration that doesn't make sense
+% because the triggers are sometimes incorrectly sent very abruptly
+
 %% manual artifact rejection for trials and channels .. giving trial numbers to be rejected then rejecting
 % if we have different data and all is h5 we will need to use lv_save/load
 % instead of the save/load
@@ -141,8 +145,6 @@ end
 % %     fprintf(['\n Done. \n']);
 % % end
 
-%% also do the exact segmenting in lv_segment raw and remove any trial with short duration that doesn't make sense
-% because the triggers are sometimes incorrectly sent very abruptly
 
 
 %% simulating data with effect in ERP
@@ -155,7 +157,7 @@ for nn=1:numel(sbj)
     fprintf(['\n ERP analysis, subject: ' num2str(sbj(nn)) '\n']);
     cleaned_data = lv_load([auto_cleaned_dir '\final_cleaned_after_inspection\part' num2str(sbj(nn)) '_' type '_manual_cleaned_N' num2str(sleep_stage)],'trial');
 
-    cfg=[]; cfg.latency=[0 2]; cleaned_data=ft_selectdata(cfg,cleaned_data);% reducing to time of trial
+    cfg=[]; cfg.latency=[0 2]; cleaned_data=ft_selectdata(cfg,cleaned_data);
     if conditions == 2
         classes = unique(cleaned_data.trialinfo(:,1)); 
         % configuring trialinfo for each of the conditions
@@ -166,9 +168,10 @@ for nn=1:numel(sbj)
         cleaned_data.sampleinfo = [cleaned_data.sampleinfo ; cleaned_data.sampleinfo];
         cleaned_data.trialinfo = [cleaned_data.trialinfo ; cleaned_data.trialinfo];
         cleaned_data.trialinfo(1:size(cleaned_data.trialinfo,1)/2  ,1) = 1;
-        cleaned_data.trialinfo((size(cleaned_data.trialinfo,1)/2)+1 : end) = 2; % ; (cleaned_data.trialinfo(:,1).*0)+2]
+        cleaned_data.trialinfo((size(cleaned_data.trialinfo,1)/2)+1 : end) = 2; 
     end
-    erps = lv_erp(cleaned_data, 0, 0); %data, do_stats, do_plot ... returns 2_ch_time the first rpt is cond1 erp then cond2
+    cleaned_data.baseline = [ ];
+    erps = lv_erp(cleaned_data, 0, 0); % data, do_stats, do_plot ... baseline is inside the function so change that if needed
     erps_temp = [erps_temp ; erps.trial]; % erps_temp aggregates all the erps of different sbj
 end
 
@@ -197,7 +200,7 @@ for nn=1:numel(sbj)
     fprintf(['\n TF analysis, subject: ' num2str(sbj(nn)) '\n']);
     cleaned_data = lv_load([auto_cleaned_dir '\final_cleaned_after_inspection\part' num2str(sbj(nn)) '_' type '_manual_cleaned_N' num2str(sleep_stage)],'trial');
 
-    cfg=[]; cfg.latency=[-0.5 1.5]; cleaned_data=ft_selectdata(cfg,cleaned_data);% reducing to time of trial
+    cfg=[]; cfg.latency=[0 2]; cleaned_data=ft_selectdata(cfg,cleaned_data);% reducing to time of trial
     % putting trials of left hand together and for right hand as well
     if conditions == 2
         classes = unique(cleaned_data.trialinfo(:,1)); cleaned_data.trialinfo(ismember(cleaned_data.trialinfo(:,1),classes(1:2)),1 ) = 1; cleaned_data.trialinfo(ismember(cleaned_data.trialinfo(:,1),classes(3:4)),1 ) = 2;
@@ -209,14 +212,31 @@ for nn=1:numel(sbj)
         cleaned_data.trialinfo((size(cleaned_data.trialinfo,1)/2)+1 : end) = 2; % ; (cleaned_data.trialinfo(:,1).*0)+2]
     end
 
-    cleaned_data.baseline = [-0.5 0];
-    [ TF_struct ] = lv_tf(cleaned_data, 0, 0); %data, do_stats, do_plot .. gets the TF in TF_struct.trial
-    TF_temp = [TF_temp ; TF_struct.trial]; % erps_temp aggregates all the erps of different sbj
+    cleaned_data.baseline = [ ]; % in case we want to include baseline period
+    [ TF_struct ] = lv_tf(cleaned_data, 0, 0); % data, do_stats, do_plot
+    TF_temp = [TF_temp ; TF_struct.trial]; % aggregates all the TF representations of different ppnts .. dims: ppnts channels freq. time
 end
 
-TF_temp_bl = TF_temp;  % with baseline
+TF_temp_bl = TF_temp;
 save TF_temp_bl TF_temp_bl;
 save TF_temp TF_temp % 22sbj TF analyses
+
+
+% simulating 20hz effect around 0.5sec.
+all_data = TF_temp;
+for i = 1:20
+    random_val = 5 + rand * 15;
+    TF_temp(1,:,35:45,100:150) = TF_temp(1,:,35:45,100:150) + 2*random_val;
+    TF_temp(2,:,35:45,100:150) = TF_temp(2,:,35:45,100:150) + random_val;
+
+    all_data = [all_data ; TF_temp];
+end
+TF_temp = all_data;
+% end of simulated part comment to here if working with real data
+
+
+
+
 
 % group lvl TF
 TF_struct.trial = TF_temp;

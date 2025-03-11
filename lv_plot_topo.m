@@ -53,11 +53,15 @@ if length(size(data.trial)) > 3 %takes 'rpt_chan_freq_time'
      
     parametric = 0; % change for different stat.
     if size(data.powspctrm,1)>2 % group lvl
+      if do_stats == 1
         if parametric==1, warning('lv: performing parametric t-stat on sample lvl as stats');
             perform_TF_correction(data, pos);
         else, warning('lv: performing non-parametric wilcoxon on sample lvl as stats');
             perform_TF_correction_nonparametric(data, pos);
         end
+      else
+        perform_difference(data, pos);
+      end
     else
         % perform difference, no correction we just have one sbj
         perform_difference(data, pos);
@@ -416,14 +420,14 @@ cond2 = data_struct.cond2;
 if isfield(data_struct,'chance')
     chance = data_struct.chance; end
 
-if isnan(chance), x = [ max(cond1(:)) max(cond2(:)) min(cond1(:)) min(cond2(:)) ]; % if no chance then get the limits from data
-    limits_conditions = [min(x) max(x)]; % non-symmetric
+if isnan(chance), x = [ nanmax(cond1(:)) nanmax(cond2(:)) nanmin(cond1(:)) nanmin(cond2(:)) ]; % if no chance then get the limits from data
+    limits_conditions = [nanmin(x) nanmax(x)]; % non-symmetric
 else
-    x = max( abs([max(cond1(:)) max(cond2(:)) min(cond1(:)) min(cond2(:))]-chance) ); % symmetric around chance based on maximum
+    x = max( abs([nanmax(cond1(:)) nanmax(cond2(:)) nanmin(cond1(:)) nanmin(cond2(:))]-chance) ); % symmetric around chance based on maximum
     limits_conditions = [chance-x chance+x];
 end
 
-x = max(abs(data(:))); % z-val has chance 0 .. so will be symmetric around that
+x = nanmax(abs(data(:))); % z-val has chance 0 .. so will be symmetric around that
 limits = [-x x];
 
 

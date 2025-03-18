@@ -23,7 +23,7 @@ else % incase of curve one connected point to the side
     L = bwlabeln(sval>sample_alpha, connectivity); 
 end
 fprintf(['\n ' num2str(max(L(:))) ' cluster(s) found. \n']);
-if max(L(:))==0, error('no clusters found in data'); end
+
 
 for i=1:max(L(:)), ob_cluster_sum(i) = nansum( reshape(sval.*(L==i),1,[]) ); end
 
@@ -61,7 +61,6 @@ idx = find(statsStruct.p<final_alpha);
 for i=1:length(idx), statsStruct.mask(L==idx(i)) = 1; end % to be one despite the cluster
 
 statsStruct.mask_with_cluster_numbers = statsStruct.mask .* L; % to show the actual cluster number
-fprintf('p-value: %.4f\n', statsStruct.p);
-
+statsStruct.p
 
 end

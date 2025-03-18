@@ -189,13 +189,14 @@ end
 erps.trial = all_data;
 % end of simulated part comment to here if working with real data
 
-
 lv_erp(erps, 0, 1); %data, do_stats, do_plot
 
 % with stats
-% lv_erp(erps, 1, 1); %data, do_stats, do_plot
+erps.parametric = 1;
+lv_erp(erps, 1, 1); %data, do_stats, do_plot
 %% TF analysis
 TF_temp=[];     
+conditions = 1;
 for nn=1:numel(sbj)
     fprintf(['\n TF analysis, subject: ' num2str(sbj(nn)) '\n']);
     cleaned_data = lv_load([auto_cleaned_dir '\final_cleaned_after_inspection\part' num2str(sbj(nn)) '_' type '_manual_cleaned_N' num2str(sleep_stage)],'trial');
@@ -223,7 +224,7 @@ save TF_temp TF_temp % 22sbj TF analyses
 
 
 % simulating 20hz effect around 0.5sec.
-all_data = TF_temp;
+all_data = [];
 for i = 1:20
     random_val = 5 + rand * 15;
     TF_temp(1,:,35:45,100:150) = TF_temp(1,:,35:45,100:150) + 2*random_val;
@@ -234,15 +235,23 @@ end
 TF_temp = all_data;
 % end of simulated part comment to here if working with real data
 
-
-
-
-
 % group lvl TF
 TF_struct.trial = TF_temp;
 lv_tf(TF_struct, 0, 1); %data, do_stats, do_plot
 
+TF_struct.parametric = 0;
+lv_tf(TF_struct, 1, 1); %data, do_stats, do_plot
 
+
+% % manual check .. could check each condition or the difference
+% ids=1:2:size(TF_struct.trial,1);
+% even_ids=2:2:size(TF_struct.trial,1);
+% difference = TF_struct.trial(ids,1,:,:) - TF_struct.trial(even_ids,1,:,:); 
+% ss = squeeze( mean(TF_struct.trial(ids,1,:,:), 1) );
+% ss2 = squeeze( mean(TF_struct.trial(even_ids,1,:,:), 1) );
+% figure,
+% % imagesc(TF_struct.time, TF_struct.freq, squeeze(mean(difference,1)) ); set(gca,'YDir','normal');
+% imagesc(TF_struct.time, TF_struct.freq, ss2 ); set(gca,'YDir','normal');
 
 
 %% helping function

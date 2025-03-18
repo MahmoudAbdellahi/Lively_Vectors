@@ -13,7 +13,7 @@ data_header = (fullfile(rawdir, [typeEEG '.vhdr']));
 
 hdr = ft_read_header(data_raw);
 nightinsamples = hdr.nSamples; % used in scoring
-if ~isempty(ref_ch{:})
+if ~isempty(ref_ch)
     refIdx = find(ismember(hdr.label, [ref_ch])); % because ref. channels are always needed to get the value of any channel
     refIdx = refIdx(:)';
     % if length(refIdx)~=2, error('lv: cannot find TP9 and TP10 !!'); end
@@ -48,7 +48,7 @@ for i=1: length(hdr.label)
     end
     
     cfg=[];
-    if ~isempty(ref_ch{:})
+    if ~isempty(ref_ch)
         cfg.reref       = 'yes';
         cfg.refchannel  = [ref_ch]; %{'TP9', 'TP10'}; % the average of these two is used as the new reference, sometimes these become loose and that would be a problem
     end

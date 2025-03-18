@@ -10,9 +10,7 @@ if length(size(data.trial))==3 %rpt_ch_time
     if isfield(data,'trialinfo')
         % sbj lvl
         for i=1:size(data.trial,2)
-            label_size_factor = 0.08 - ((0.08 - 0.04) / (58 - 6)) * (length(pos) - 6); % to have the figures proportional to the no. channels
-            axes('Position',[pos(i,1) pos(i,2)  label_size_factor label_size_factor]);
-            % axes('Position',[pos(i,1) pos(i,2)  0.05 0.05]) % the first two for the position of the figure if it is from 0 to 1 and then the position of the figure
+            axes('Position',[pos(i,1) pos(i,2)  0.05 0.05]) % the first two for the position of the figure if it is from 0 to 1 and then the position of the figure
             % sbj lvl no correction:
             mo_pretty_errorbar(data.time, squeeze(data.trial(data.trialinfo==conds(1),i,:)),squeeze(data.trial(data.trialinfo==conds(2),i,:)), 99);
             title(data.label(i));
@@ -20,13 +18,11 @@ if length(size(data.trial))==3 %rpt_ch_time
     else
         % group lvl
         cluster_in_space = 0;
-        parametric = data.parametric; % change for different stat.
+        parametric = 1; % change for different stat.
         cond1_idx = mod(1:size(data.trial,1),2);
         if cluster_in_space==0
             for i=1:size(data.trial,2)
-                % axes('Position',[pos(i,1) pos(i,2)  0.05 0.05])
-                label_size_factor = 0.08 - ((0.08 - 0.04) / (58 - 6)) * (length(pos) - 6); % to have the figures proportional to the no. channels
-                axes('Position',[pos(i,1) pos(i,2)  label_size_factor label_size_factor]);
+                axes('Position',[pos(i,1) pos(i,2)  0.05 0.05])
                 if do_stats==0
                     mo_pretty_errorbar(data.time,squeeze(data.trial(logical(cond1_idx) ,i,:)),squeeze(data.trial(logical(~cond1_idx) ,i,:)), 99);
                 else
@@ -55,7 +51,7 @@ if length(size(data.trial)) > 3 %takes 'rpt_chan_freq_time'
     %takes 'rpt_chan_freq_time' in tfr.powspctrm
     data = rmfield(data ,'trial');
      
-    parametric = data.parametric; % change for different stat.
+    parametric = 1; % change for different stat.
     if size(data.powspctrm,1)>2 % group lvl
       if do_stats == 1
         if parametric==1, warning('lv: performing parametric t-stat on sample lvl as stats');
@@ -90,7 +86,7 @@ if dimensions(2)>1 % many channels
     info.x     = lv_layout.pos(:,1);
     info.y     = lv_layout.pos(:,2);
     info.label = lv_layout.label; 
-    
+     
     guidata(gcf, info); % GUIDATA(H, DATA) stores the specified data in the figure's application data. H is a handle that identifies the figure
     
     set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', @compress_channels, 'event', 'WindowButtonDownFcn'})
@@ -205,7 +201,6 @@ if cfg.correctm==0, cfg.correctm = 'cluster';
     cfg.clustertail         = 0;
     cfg.numrandomization    = 100;
 else
-    cfg.numrandomization    = 100;
     cfg.correctm = 'tfce'; cfg.tfce_H = 2; cfg.tfce_E = 0.5; % default setting
 end 
 
@@ -262,18 +257,11 @@ if cluster_in_space==0
         statsStruct.mask = double(statsStruct.mask);
         temp.powspctrm(i,:,:) = squeeze(statsStruct.stat); % to make temp ch_freq_time
         mask = squeeze(statsStruct.mask);
-    end 
+    end
+    % TODO: revise with real data ...  
     temp.cond1 = hold_cond1S_powspctrm; temp.cond2 = hold_cond2S_powspctrm;
-    if size(temp.cond1,1) > 3
+    if temp.cond1 > 3
         temp.cond1 = squeeze(mean(temp.cond1, 1));
-        temp.cond2 = squeeze(mean(temp.cond2, 1));
-        if length(size(temp.cond1))== 2 % because plot 2d expects first dime to be channels so if we 
-        % repeat on topo we would have one channel which is the average
-            tempcond1(1,:,:) = temp.cond1;
-            tempcond2(1,:,:) = temp.cond2;
-            temp.cond1 = tempcond1;
-            temp.cond2 = tempcond2;
-        end 
     end
     temp.chance = 0; % assumed chance for difference
     plot2d(temp ,'t-stat, corrected with cluser permutation',pos, mask )
@@ -345,8 +333,7 @@ cond2S =  tfr.powspctrm(~logical(cond1_idx), :,:,:);
 
 % cutting data if needed and setting chance level if any
 % chance = 0.5;  Tocut_temp=50;
-% [chance, Tocut_temp] = lv_tune_params('if we have chance level type it','','if we need to cut a period from rows and cols (ms)',''); % chance for making limits of color bars dynamic, and cutting hint: half the smoothing window if erp features
-chance = nan; Tocut_temp=0;
+[chance, Tocut_temp] = lv_tune_params('if we have chance level type it','','if we need to cut a period from rows and cols (ms)',''); % chance for making limits of color bars dynamic, and cutting hint: half the smoothing window if erp features
 if Tocut_temp>0 % in case of TF analysis no need to cut time at all.. but for classfiication we need to prevent features leakage
     Tocut = nearest(tfr.time, 0) + nearest(tfr.time, Tocut_temp/1000);
     cond1S = cond1S(:,:,Tocut:end-Tocut,Tocut:end-Tocut); tfr.time = tfr.time(Tocut:end-Tocut); tfr.freq = tfr.freq(Tocut:end-Tocut);
@@ -371,29 +358,26 @@ cfg.null            = 0 ; % the difference between conditions will be compared t
 temp = tfr; temp.powspctrm=[];
 % searching for cond1's positive effect only ...
 for i=1:size(cond1S,2) % on every channel
+    
     for subj = 1:size(cond1S,1)
         Diffresult{subj,1}.perf = squeeze(cond1S(subj,i,:,:)) - squeeze(cond2S(subj,i,:,:)); % .perf has freq_time
         Diffresult{subj,1}.metric = [];
     end
     
-    
-    warning('using lv_cluster_permutation, to use MVPA uncomment MVPA stats part in lv_plot_topo.m')
-    [statsStruct,zval] = lv_mdim_clusterstats(cfg, Diffresult, 0);
-    
-    % MVPA stats
-    % addpath(genpath(fullfile(pwd, 'MVPA-Light-master')))
-    % statsStruct = mv_statistics(cfg, Diffresult); 
-    % % calculating the sample wise z-values
-    % x = squeeze(cond1S(:,i,:,:)); y = squeeze(cond2S(:,i,:,:)); zval=[];
-    % for k=1:size(cond1S,3) %freq
-    %     for u=1:size(cond1S,4) %time
-    %         if sum(isnan(squeeze(x(:,k,u))))==0
-    %             [~,~,stats] = signrank(squeeze(x(:,k,u)),squeeze(y(:,k,u)), 'method','approximate');
-    %             if stats.signedrank==0, zval(k,u)=0; else 
-    %             zval(k,u) = stats.zval; end % freq_time
-    %         else zval(k,u)=nan; end
-    %     end
-    % end
+    addpath(genpath(fullfile(pwd, 'MVPA-Light-master')))
+    statsStruct = mv_statistics(cfg, Diffresult);
+%     statsStruct = lv_2d_clusterstats(cfg, Diffresult);
+    % calculating the sample wise z-values
+    x = squeeze(cond1S(:,i,:,:)); y = squeeze(cond2S(:,i,:,:)); zval=[];
+    for k=1:size(cond1S,3) %freq
+        for u=1:size(cond1S,4) %time
+            if sum(isnan(squeeze(x(:,k,u))))==0
+                [~,~,stats] = signrank(squeeze(x(:,k,u)),squeeze(y(:,k,u)), 'method','approximate');
+                if stats.signedrank==0, zval(k,u)=0; else 
+                zval(k,u) = stats.zval; end % freq_time
+            else zval(k,u)=nan; end
+        end
+    end
     
     statsStruct.mask = double(statsStruct.mask);
     temp.powspctrm(i,:,:) = zval; % to make temp ch_freq_time
@@ -450,11 +434,6 @@ function plot2d(data_struct ,colorlabel,pos, mask )
 % then it loops on channels and plots in pos with unified colorbar scaling
 % it plots the z-val or difference and the original conditions: cond1 and
 % cond2
-% making sure that the dimensions are channels and then two other dimensions that will be plotted in 2d
-if length(size(data_struct.powspctrm))~=3 || length(size(data_struct.cond1))~=3 || length(size(data_struct.cond2))~=3
-   error('make sure that data is channelsxdim1xdim2 (dim1 and dim2 should be the 2d plot)') 
-end
-
 data = data_struct.powspctrm; % z-val or difference if one sbj
 cond1 = data_struct.cond1; % getting conditions for plotting
 cond2 = data_struct.cond2;

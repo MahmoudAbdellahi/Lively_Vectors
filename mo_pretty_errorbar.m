@@ -206,7 +206,12 @@ for subj = 1:size(cond1S,1)
     Diffresult{subj,1}.metric = [];
 end
 
-stat = mv_statistics(cfg, Diffresult);
+warning('using lv_cluster_permutation, to use MVPA uncomment MVPA stats part in lv_plot_topo.m')
+[stat,~] = lv_mdim_clusterstats(cfg, Diffresult, 0);
+
+% MVPA stats 
+% stat = mv_statistics(cfg, Diffresult);
+
 
 
 fprintf(['\n This is a positive clusters only test we found: P = ' num2str(stat.p) '\n']);

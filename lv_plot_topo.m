@@ -20,7 +20,6 @@ if length(size(data.trial))==3 %rpt_ch_time
     else
         % group lvl
         cluster_in_space = 0;
-        parametric = data.parametric; % change for different stat.
         cond1_idx = mod(1:size(data.trial,1),2);
         if cluster_in_space==0
             for i=1:size(data.trial,2)
@@ -30,6 +29,7 @@ if length(size(data.trial))==3 %rpt_ch_time
                 if do_stats==0
                     mo_pretty_errorbar(data.time,squeeze(data.trial(logical(cond1_idx) ,i,:)),squeeze(data.trial(logical(~cond1_idx) ,i,:)), 99);
                 else
+                    parametric = data.parametric; % change for different stat.
                     disp( string(data.label(i)) );
                     if parametric==1
                         mo_pretty_errorbar(data.time,squeeze(data.trial(logical(cond1_idx) ,i,:)),squeeze(data.trial(logical(~cond1_idx) ,i,:)), 1);
@@ -55,9 +55,9 @@ if length(size(data.trial)) > 3 %takes 'rpt_chan_freq_time'
     %takes 'rpt_chan_freq_time' in tfr.powspctrm
     data = rmfield(data ,'trial');
      
-    parametric = data.parametric; % change for different stat.
     if size(data.powspctrm,1)>2 % group lvl
       if do_stats == 1
+        parametric = data.parametric; % change for different stat.
         if parametric==1, warning('lv: performing parametric t-stat on sample lvl as stats');
             perform_TF_correction(data, pos);
         else, warning('lv: performing non-parametric wilcoxon on sample lvl as stats');
@@ -86,7 +86,9 @@ if dimensions(2)>1 % many channels
     info       = guidata(gcf);
     info.data = data;
     info.do_stats = do_stats;
-    info.parametric = parametric;
+    if do_stats == 1
+        info.parametric = parametric;
+    end
     info.x     = lv_layout.pos(:,1);
     info.y     = lv_layout.pos(:,2);
     info.label = lv_layout.label; 
@@ -161,10 +163,12 @@ if isfield(info.data,'powspctrm')
         str = strjoin(string(data.label(selected_channels)'),', ');
         data.label = { char(strjoin(['mean(' str ')'])) }; end
     if size(data.powspctrm,1)>2 % group lvl
-        if info.parametric==1 && info.do_stats == 1 
-            perform_TF_correction(data, []);
-        elseif info.do_stats == 1 
-            perform_TF_correction_nonparametric(data, []);
+        if info.do_stats == 1 
+            if info.parametric==1 
+                perform_TF_correction(data, []);
+            else
+                perform_TF_correction_nonparametric(data, []);
+            end
         else 
             perform_difference(data, []); % sbj lvl just plot the
             % difference .. should put the average here because otherwise
@@ -346,7 +350,7 @@ cond2S =  tfr.powspctrm(~logical(cond1_idx), :,:,:);
 % cutting data if needed and setting chance level if any
 % chance = 0.5;  Tocut_temp=50;
 % [chance, Tocut_temp] = lv_tune_params('if we have chance level type it','','if we need to cut a period from rows and cols (ms)',''); % chance for making limits of color bars dynamic, and cutting hint: half the smoothing window if erp features
-chance = nan; Tocut_temp=0;
+chance = 0; Tocut_temp=0;
 if Tocut_temp>0 % in case of TF analysis no need to cut time at all.. but for classfiication we need to prevent features leakage
     Tocut = nearest(tfr.time, 0) + nearest(tfr.time, Tocut_temp/1000);
     cond1S = cond1S(:,:,Tocut:end-Tocut,Tocut:end-Tocut); tfr.time = tfr.time(Tocut:end-Tocut); tfr.freq = tfr.freq(Tocut:end-Tocut);
@@ -415,6 +419,9 @@ plot2d(temp ,'z-stat, (cond1 positive clusters are shown)',pos, mask )
 
 end
 
+% for i=1:size(cond1S,1)
+%    figure, imagesc( squeeze(cond1S(i,1,:,:)) )
+% end
 
 % difference
 function perform_difference(tfr, pos)

@@ -192,7 +192,7 @@ erps.trial = all_data;
 lv_erp(erps, 0, 1); %data, do_stats, do_plot
 
 % with stats
-erps.parametric = 1;
+erps.parametric = 0;
 lv_erp(erps, 1, 1); %data, do_stats, do_plot
 %% TF analysis
 TF_temp=[];     
@@ -233,13 +233,14 @@ for i = 1:20
     all_data = [all_data ; TF_temp];
 end
 TF_temp = all_data;
+TF_struct.trial = TF_temp;
 % end of simulated part comment to here if working with real data
 
 % group lvl TF
-TF_struct.trial = TF_temp;
+
 lv_tf(TF_struct, 0, 1); %data, do_stats, do_plot
 
-TF_struct.parametric = 0;
+TF_struct.parametric = 1;
 lv_tf(TF_struct, 1, 1); %data, do_stats, do_plot
 
 

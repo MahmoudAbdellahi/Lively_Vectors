@@ -192,8 +192,8 @@ erps.trial = all_data;
 lv_erp(erps, 0, 1); %data, do_stats, do_plot
 
 % with stats
-erps.parametric = 0;
-lv_erp(erps, 1, 1); %data, do_stats, do_plot
+% erps.parametric = 0;
+% lv_erp(erps, 1, 1); %data, do_stats, do_plot
 %% TF analysis
 TF_temp=[];     
 conditions = 1;
@@ -240,8 +240,8 @@ TF_struct.trial = TF_temp;
 
 lv_tf(TF_struct, 0, 1); %data, do_stats, do_plot
 
-TF_struct.parametric = 1;
-lv_tf(TF_struct, 1, 1); %data, do_stats, do_plot
+% TF_struct.parametric = 1;
+% lv_tf(TF_struct, 1, 1); %data, do_stats, do_plot
 
 
 % % manual check .. could check each condition or the difference

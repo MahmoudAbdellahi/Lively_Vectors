@@ -16,7 +16,7 @@ fstruct = dir([rawdir '/part*.eeg']); h = struct2cell(fstruct);
 sbj = unique(str2double( (cellfun(@(x) (strtok(x,['part_'])), (h(1,:))','Un', 0))' ));
 pre_stim = 0.5;
 post_stim = 2.5;
-ref_ch = {''}; % {'TP9', 'TP10'};
+ref_ch = {''}; % {'O1', 'O2'};
 required_sampling_rate = 200;
 
 
@@ -192,8 +192,8 @@ erps.trial = all_data;
 lv_erp(erps, 0, 1); %data, do_stats, do_plot
 
 % with stats
-% erps.parametric = 0;
-% lv_erp(erps, 1, 1); %data, do_stats, do_plot
+erps.parametric = 1;
+lv_erp(erps, 1, 1); %data, do_stats, do_plot
 %% TF analysis
 TF_temp=[];     
 conditions = 1;
@@ -213,7 +213,7 @@ for nn=1:numel(sbj)
         cleaned_data.trialinfo((size(cleaned_data.trialinfo,1)/2)+1 : end) = 2; % ; (cleaned_data.trialinfo(:,1).*0)+2]
     end
 
-    cleaned_data.baseline = [ ]; % in case we want to include baseline period
+    cleaned_data.baseline = [0 0. ]; % in case we want to include baseline period
     [ TF_struct ] = lv_tf(cleaned_data, 0, 0); % data, do_stats, do_plot
     TF_temp = [TF_temp ; TF_struct.trial]; % aggregates all the TF representations of different ppnts .. dims: ppnts channels freq. time
 end
@@ -237,11 +237,10 @@ TF_struct.trial = TF_temp;
 % end of simulated part comment to here if working with real data
 
 % group lvl TF
+% lv_tf(TF_struct, 0, 1); %data, do_stats, do_plot
 
-lv_tf(TF_struct, 0, 1); %data, do_stats, do_plot
-
-% TF_struct.parametric = 1;
-% lv_tf(TF_struct, 1, 1); %data, do_stats, do_plot
+TF_struct.parametric = 1;
+lv_tf(TF_struct, 1, 1); %data, do_stats, do_plot
 
 
 % % manual check .. could check each condition or the difference

@@ -207,9 +207,9 @@ if cfg.correctm==0, cfg.correctm = 'cluster';
     cfg.alpha               = 0.025; % since two-tailed
     cfg.tail                = 0;
     cfg.clustertail         = 0;
-    cfg.numrandomization    = 100;
+    cfg.numrandomization    = 1000;
 else
-    cfg.numrandomization    = 100;
+    cfg.numrandomization    = 1000;
     cfg.correctm = 'tfce'; cfg.tfce_H = 2; cfg.tfce_E = 0.5; % default setting
 end 
 
@@ -261,6 +261,11 @@ if cluster_in_space==0
         
         [statsStruct] = ft_freqstatistics(cfg, cond1S, cond2S);
         
+        try
+            pvalue = statsStruct.posclusters.prob
+        catch
+            disp('no positive cluster');
+        end
         % plot masked 2d on positions with condition1 because it is the one
         % of interest 
         statsStruct.mask = double(statsStruct.mask);

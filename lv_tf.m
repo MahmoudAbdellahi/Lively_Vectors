@@ -109,10 +109,10 @@ cfg.channel      = 'all';
 cfg.method       = 'mtmconvol';
 cfg.taper        = 'hanning';
 % cfg.method = 'wavelet';
-cfg.foi          = 1:0.5:30; %linspace(frequencies(1),frequencies(end),2*(1+frequencies(end)-frequencies(1)));
-cfg.t_ftimwin    = 5./cfg.foi;  % 5 cycles as a minimum to describe the frequency well
+cfg.foi          = frequencies(1):0.5:frequencies(2); %linspace(frequencies(1),frequencies(end),2*(1+frequencies(end)-frequencies(1)));
+cfg.t_ftimwin    = 5./cfg.foi;  % 5 cycles as a minimum to describe the frequency well or ones(length(cfg.foi),1).*0.5;   % length of time window = 0.5 sec
 cfg.toi          = dat.time; % .time for max resolution .. to jump: window(1):0.1:window(2) this is just for visual smoothing
-cfg.pad          ='nextpow2'; % rounds the maximum trial length up to the next power of 2
+cfg.pad          ='nextpow2'; % rounds the trial length to the next power of 2 .. because fft is more efficient when the length is power of 2
 % cfg.keeptrials = 'yes';
 TFdat = ft_freqanalysis(cfg, dat);
 
@@ -129,7 +129,7 @@ end
 if ~isempty(baseline) && baseline(1)~=0
     cfg              = [];
     cfg.baseline     = [baseline(1) baseline(2)];
-    cfg.baselinetype = 'relchange';
+    cfg.baselinetype = 'relchange'; % absolute (difference) and we could get db
     [TFdat] = ft_freqbaseline(cfg, TFdat); % ch x freq x time
 end
 

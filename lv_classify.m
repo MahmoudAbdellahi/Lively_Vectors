@@ -120,13 +120,14 @@ for fi = 1:CVO.NumTestSets % folds
 
         if length(cfg.classifier_type)==3, if strcmp(cfg.classifier_type{2},'domain_align'), cfg.classifier_type{3}=dim; end, end
         % because in domain align all timepts of train are aggregated but we need to separate them later on to adapt to trn's domain
-        if strcmp(cfg.perf_measure,'dval')==1, fold_dval = CVO.test(fi); else fold_dval = []; end % this one was if fi>1, fold_dval = CVO.test(fi); else fold_dval=1; end but it was giving error when we use 10fold to get dvals
+        if strcmp(cfg.perf_measure,'dval')==1 && ~isnan(folds)
+            fold_dval = CVO.test(fi); else fold_dval = 1; end % this one was if fi>1, fold_dval = CVO.test(fi); else fold_dval=1; end but it was giving error when we use 10fold to get dvals
         %         progressbar = ParforProgressbar(size(fold_TRAIN,3),'title', 'Classification progress');
-        parfor (j=1:size(fold_TRAIN,3), workers) % no. workers,, will be 0 if not parallel and max available if parallel
-                                            % for j=1:size(fold_TRAIN,3)
+        % parfor (j=1:size(fold_TRAIN,3), workers) % no. workers,, will be 0 if not parallel and max available if parallel
+          for j=1:size(fold_TRAIN,3)
 
             [outclass,~,hh] = low_lvl_classify(squeeze(fold_TEST(:,:,dimension(j))),  squeeze(fold_TRAIN(:,:,j)) ,fold_TRAIN_GROUP, cfg.classifier_type, observation_weights); % (CVO.training(fi)) for weighted classification and folds
-
+            
             if strcmp(cfg.classifier_type{1},'toi_classifiers')==1, if strcmp(cfg.classifier_type{2},'trn')==1, txtAuc{fi,j} = hh; continue; end, end % because this classifier needs the time info so we use the variables differently to just get the classifier model at every timept
             if strcmp(cfg.perf_measure,'auc')==1
                 % est is now trltime
@@ -142,8 +143,22 @@ for fi = 1:CVO.NumTestSets % folds
                     txtAuc_tmp{j}.res(fi,timPt,ch) = (sum(fold_TEST_GROUP==forAcc(:,timPt))/length(fold_TEST_GROUP));
                 end
             elseif strcmp(cfg.perf_measure,'dval')==1
-%                 trl_time_dval{j}.res(fold_dval,:,:) = reshape( max(hh,[],2),dim(1),[] ); % trntime_fold_trl_time
-                trl_time_dval{j}.res(fold_dval,:,:) = reshape( outclass,dim(1),[] ); % to return the predicted labels if we want to look at the correct and incorrect trials like in REM_classification_theta
+                % trl_time_dval{j}.res(fold_dval,:,:) = reshape( max(hh,[],2),dim(1),[] ); % trntime_fold_trl_time
+                % trl_time_dval{j}.res(fold_dval,:,:) = reshape( outclass,dim(1),[] ); % to return the predicted labels if we want to look at the correct and incorrect trials like in REM_classification_theta
+
+                % labels according to high certainty for longer duration ..
+                % and that would return accuracy after that
+                cert_c1 = reshape( hh(:,1),dim(1),[] );
+                cert_c2 = reshape( hh(:,2),dim(1),[] );
+
+                cert_c1 = movmean(cert_c1, 10, 2, 'Endpoints', 'fill');
+                cert_c2 = movmean(cert_c2, 10, 2, 'Endpoints', 'fill');
+
+                % output_label = reshape( outclass,dim(1),[] );
+                output_label = double(nanmax(cert_c1,[], 2) > nanmax(cert_c2,[], 2));
+                output_label(output_label==0) = 2;
+                trl_time_dval{j}.res(fold_dval,:,:) = (sum(fold_TEST_GROUP==output_label) / length(fold_TEST_GROUP));
+                 
                 % every trn timept will give you a whole testing set of fidelity values of trl_time
             end
             %             progressbar.increment();
@@ -207,6 +222,7 @@ switch classifier_name
     case 'knn'
         k = sqrt(size(TRAIN,1));
         if mod(k,2)==0, k = k+1; end
+        k = 5;
         Mdl = fitcknn(TRAIN,TRAIN_GROUP,'NumNeighbors',k);
         [outclass,posterior] = predict(Mdl,TEST); err = 1;
     case 'random_forest'

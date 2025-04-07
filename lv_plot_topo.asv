@@ -20,7 +20,6 @@ if length(size(data.trial))==3 %rpt_ch_time
     else
         % group lvl
         cluster_in_space = 0;
-        parametric = data.parametric; % change for different stat.
         cond1_idx = mod(1:size(data.trial,1),2);
         if cluster_in_space==0
             for i=1:size(data.trial,2)
@@ -30,6 +29,7 @@ if length(size(data.trial))==3 %rpt_ch_time
                 if do_stats==0
                     mo_pretty_errorbar(data.time,squeeze(data.trial(logical(cond1_idx) ,i,:)),squeeze(data.trial(logical(~cond1_idx) ,i,:)), 99);
                 else
+                    parametric = data.parametric; % change for different stat.
                     disp( string(data.label(i)) );
                     if parametric==1
                         mo_pretty_errorbar(data.time,squeeze(data.trial(logical(cond1_idx) ,i,:)),squeeze(data.trial(logical(~cond1_idx) ,i,:)), 1);
@@ -166,13 +166,13 @@ if isfield(info.data,'powspctrm')
         if info.do_stats == 1 
             if info.parametric==1 
                 perform_TF_correction(data, []);
-            elseif info.do_stats == 1 
+            else
                 perform_TF_correction_nonparametric(data, []);
-            else 
-                perform_difference(data, []); % sbj lvl just plot the
-                % difference .. should put the average here because otherwise
-                % it would the difference of a difference so would be zeros
             end
+        else 
+            perform_difference(data, []); % sbj lvl just plot the
+            % difference .. should put the average here because otherwise
+            % it would the difference of a difference so would be zeros
         end
     else
         perform_difference(data, []); % sbj lvl just plot the difference
@@ -207,9 +207,9 @@ if cfg.correctm==0, cfg.correctm = 'cluster';
     cfg.alpha               = 0.025; % since two-tailed
     cfg.tail                = 0;
     cfg.clustertail         = 0;
-    cfg.numrandomization    = 100;
+    cfg.numrandomization    = 1000;
 else
-    cfg.numrandomization    = 100;
+    cfg.numrandomization    = 1000;
     cfg.correctm = 'tfce'; cfg.tfce_H = 2; cfg.tfce_E = 0.5; % default setting
 end 
 
@@ -261,6 +261,11 @@ if cluster_in_space==0
         
         [statsStruct] = ft_freqstatistics(cfg, cond1S, cond2S);
         
+        try
+            pvalue = statsStruct.posclusters2.prob
+        catch
+            disp('no positive cluster');
+        end
         % plot masked 2d on positions with condition1 because it is the one
         % of interest 
         statsStruct.mask = double(statsStruct.mask);
@@ -350,7 +355,7 @@ cond2S =  tfr.powspctrm(~logical(cond1_idx), :,:,:);
 % cutting data if needed and setting chance level if any
 % chance = 0.5;  Tocut_temp=50;
 % [chance, Tocut_temp] = lv_tune_params('if we have chance level type it','','if we need to cut a period from rows and cols (ms)',''); % chance for making limits of color bars dynamic, and cutting hint: half the smoothing window if erp features
-chance = nan; Tocut_temp=0;
+chance = 0; Tocut_temp=0;
 if Tocut_temp>0 % in case of TF analysis no need to cut time at all.. but for classfiication we need to prevent features leakage
     Tocut = nearest(tfr.time, 0) + nearest(tfr.time, Tocut_temp/1000);
     cond1S = cond1S(:,:,Tocut:end-Tocut,Tocut:end-Tocut); tfr.time = tfr.time(Tocut:end-Tocut); tfr.freq = tfr.freq(Tocut:end-Tocut);
@@ -419,6 +424,9 @@ plot2d(temp ,'z-stat, (cond1 positive clusters are shown)',pos, mask )
 
 end
 
+% for i=1:size(cond1S,1)
+%    figure, imagesc( squeeze(cond1S(i,1,:,:)) )
+% end
 
 % difference
 function perform_difference(tfr, pos)
